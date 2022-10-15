@@ -51,8 +51,22 @@ int main(int argc, const char * argv[]) {
     }
     if(!file1.eof() || !file2.eof()) 
     {
-        cout << "The number of lines is incorrect" << endl;
-        return 5; // files do not have the same # of lines
+		while (!file1.eof()) {
+			std::string extraToken;
+			file1 >> extraToken;
+			if (!extraToken.empty()) {
+				cout << "Your file has extra tokens" << endl;
+				return 5; // files do not have the same # of lines
+			}
+		}
+		while (!file2.eof()) {
+			std::string extraToken;
+			file2 >> extraToken;
+			if (!extraToken.empty()) {
+				cout << "Your file is missing some tokens" << endl;
+				return 5; // files do not have the same # of lines
+			}
+		}
     }
     return 0;
 }
