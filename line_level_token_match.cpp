@@ -7,9 +7,21 @@
 #include<iostream>
 #include <unordered_map>
 #include <string>
-#include <algorithm>
+#include <regex>
 
 using namespace std;
+
+string ltrim(const string &s) {
+	return regex_replace(s, regex("^\\s+"), string(""));
+}
+
+string rtrim(const string &s) {
+	return regex_replace(s, regex("\\s+$"), string(""));
+}
+
+string trim(const string &s) {
+	return ltrim(rtrim(s));
+}
 
 static unordered_map<int, string> leniencyMessages = {
 		{0, ""},
@@ -38,6 +50,8 @@ int main(int argc, const char * argv[]) {
 	while (!file1.eof() && !file2.eof()) {  // if both files have another line, iterate
         getline(file1, line1);
         getline(file2, line2);
+		line1 = trim(line1);
+		line2 = trim(line2);
         istrstream line_stream1(line1.c_str()), line_stream2(line2.c_str());
         string word1, word2;
 		while (line1.empty() && !line2.empty() && !line_stream1.eof()) { // Allowing leniency for extra/missing newlines
