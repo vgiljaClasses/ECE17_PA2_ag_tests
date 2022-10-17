@@ -5,8 +5,20 @@
 #include<fstream>
 #include<strstream>
 #include<iostream>
+#include <unordered_map>
+#include <string>
+#include <algorithm>
 
 using namespace std;
+
+static unordered_map<int, string> leniencyMessages = {
+		{0, ""},
+		{1, "Your file has extra tokens"},
+		{2, "Your file is missing some tokens"},
+		{3, "Missing Paragraph Space(s): Partial Credit\n"},
+		{4, "Extra Paragraph Space(s): Partial Credit\n"},
+		{5, "Combination of Missing/Extra Paragraph Space(s): Partial Credit\n"},
+};
 
 // Open two files and compare, tokens should match on all lines
 // return 0 if true, 1 otherwise
@@ -22,11 +34,24 @@ int main(int argc, const char * argv[]) {
     if (!file1.is_open() || !file2.is_open()) return 2;  // a file (or two) didn't open
 
     string line1, line2;
-    while (!file1.eof() && !file2.eof()) {  // if both files have another line, iterate
+	int missingParagraphSpace = 0;
+	while (!file1.eof() && !file2.eof()) {  // if both files have another line, iterate
         getline(file1, line1);
         getline(file2, line2);
         istrstream line_stream1(line1.c_str()), line_stream2(line2.c_str());
         string word1, word2;
+		while (line1.empty() && !line2.empty() && !line_stream1.eof()) { // Allowing leniency for extra/missing newlines
+			missingParagraphSpace += 4;
+			getline(file1, line1);
+			line_stream1.clear();
+			line_stream1 = istrstream(line1.c_str());
+		}
+		while (!line1.empty() && line2.empty() && !line_stream2.eof()) {
+			missingParagraphSpace += 3;
+			getline(file2, line2);
+			line_stream2.clear();
+			line_stream2 = istrstream(line2.c_str());
+		}
         while (!line_stream1.eof() && !line_stream2.eof()) { // if both lines have another word, iterate
             line_stream1 >> word1;
             line_stream2 >> word2;
@@ -42,7 +67,7 @@ int main(int argc, const char * argv[]) {
         line_stream1 >> ws;  // Consume potential whitespace at the end of lines
         line_stream2 >> ws;
         if (!line_stream1.eof() || !line_stream2.eof()) 
-        {   
+        {
             cout << "Token Count Mismatch" << endl;
             cout << "Line from 1: " << line1 << endl;
             cout << "Line from 2: " << line2 << endl;
@@ -55,7 +80,7 @@ int main(int argc, const char * argv[]) {
 			std::string extraToken;
 			file1 >> extraToken;
 			if (!extraToken.empty()) {
-				cout << "Your file has extra tokens" << endl;
+				cout << leniencyMessages[0] << endl;
 				return 5; // files do not have the same # of lines
 			}
 		}
@@ -63,10 +88,11 @@ int main(int argc, const char * argv[]) {
 			std::string extraToken;
 			file2 >> extraToken;
 			if (!extraToken.empty()) {
-				cout << "Your file is missing some tokens" << endl;
+				cout << leniencyMessages[1] << endl;
 				return 5; // files do not have the same # of lines
 			}
 		}
     }
+	cout << leniencyMessages[std::min(missingParagraphSpace, (int) leniencyMessages.size() - 1)];
     return 0;
 }
